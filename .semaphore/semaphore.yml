@@ -1,74 +1,67 @@
 version: v1.0
-name: Semaphore Python / Django Example Pipeline
+
+name: Torrent Download Pipeline
+
 agent:
+
   machine:
-    type: e1-standard-2
+
+    type: e2-standard-2
+
     os_image: ubuntu2004
-global_job_config:
-  prologue:
-    commands:
-      - sem-version python 3.8
+
 blocks:
-  - name: Install Dependencies
+
+  - name: Download Torrent
+
     task:
+
       prologue:
+
         commands:
-          - sudo apt-get update && sudo apt-get install -y python3-dev && sudo apt-get install default-libmysqlclient-dev
-      jobs:
-        - name: pip
-          commands:
-            - checkout
-            - cache restore
-            - pip download --cache-dir .pip_cache -r requirements.txt
-            - pip install aria2
-            - cache store
-  - name: Run Code Analysis
-    task:
-      prologue:
-        commands:
+
           - checkout
-          - cache restore
-          - pip install -r requirements.txt --cache-dir .pip_cache
+
+          - sudo apt-get update
+
+          - sudo apt-get install -y python3-pip
+
+          - pip3 install torrentp
+
       jobs:
-        - name: Pylint
+
+        - name: Download File
+
           commands:
-            - 'aria2c --seed-time=0 "magnet:?xt=urn:btih:76D2015AC0445F1DCA0E8847E08D9093BB03CE50&tr=udp%3A%2F%2Ftracker.breizh.pm%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Fpow7.com%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fwww.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.bitsearch.to%3A1337%2Fannounce&dn=%5BBitsearch.to%5D+Black+Widow+(2021)+%5B1080p%5D+%5BWEBRip%5D+%5B5.1%5D+%5BYTS.MX%5D"'
-  - name: Run Unit Tests
-    task:
-      prologue:
-        commands:
-          - pip install -r requirements.txt --cache-dir .pip_cache
-      jobs:
-        - name: Model Test
+
+            - mkdir -p tmp
+
+            # Replace 'magnet:...' with your actual magnet link or .torrent file path
+
+            - |
+
+              echo "Downloading torrent..."
+
+              python3 -c "
+
+import asyncio
+
+from torrentp import TorrentDownloader
+
+torrent_file = TorrentDownloader('magnet:...', 'tmp')
+
+asyncio.run(torrent_file.start_download())
+
+              "
+
+            - echo "Download complete."
+
+    epilogue:
+
+        on_pass:
+
           commands:
-            - python manage.py test tasks.tests.test_models
-        - name: View Test
-          commands:
-            - python manage.py test tasks.tests.test_views
-  - name: Run Browser Tests
-    task:
-      env_vars:
-        - name: DB_NAME
-          value: pydjango
-      prologue:
-        commands:
-          - sem-service start mysql
-          - sudo apt-get update && sudo apt-get install -y -qq mysql-client
-          - mysql --host=0.0.0.0 -uroot -e "create database $DB_NAME"
-          - checkout
-          - cache restore
-          - pip install -r requirements.txt --cache-dir .pip_cache
-          - 'nohup python manage.py runserver 127.0.0.1:8732 &'
-      jobs:
-        - name: Browser Test
-          commands:
-            - python manage.py test tasks.tests.test_browser
-  - name: Run Security Tests
-    task:
-      jobs:
-        - name: Deployment Checklist
-          commands:
-            - checkout
-            - cache restore
-            - pip install -r requirements.txt --cache-dir .pip_cache
-            - python manage.py check --deploy --fail-level ERROR
+
+            - echo "Pipeline completed successfully."
+
+            # Optionally, you can push artifacts or perform other actions here.
