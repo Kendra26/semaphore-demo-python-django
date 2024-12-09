@@ -1,13 +1,13 @@
 # AppVeyor configuration file
 version: 1.0.{build}
 
-# Using Ubuntu since Deluge is being installed
-image: Ubuntu
+# Using macOS for the environment
+image: macos-sonoma
 
 # Install necessary packages
 install:
-  - sudo apt update
-  - sudo apt install -y deluged deluge-web deluge-console
+  - brew update  # Update Homebrew
+  - brew install deluge  # Install Deluge via Homebrew
 
 # Build and deploy steps
 build_script:
