@@ -1,34 +1,30 @@
 version: 1.0.{build}
-image: Visual Studio 2019
 
-# Set the build mode to "Script" instead of "MSBuild"
-build_script:
-  - echo "Preparing environment..."
+image: macos-sonoma  # Use macOS Sonoma image (or the latest available)
 
-  # Install Deluge via Chocolatey
-  - choco install deluge -y  # Install Deluge via Chocolatey
+install:
+  - cmd: brew update
+  - cmd: brew install python  # Ensure Python is installed
+  - cmd: python3 -m venv venv  # Create a Python virtual environment
+  - cmd: pip install --upgrade pip  # Upgrade pip
+  - cmd: pip install torrentp  # Install the 'torrentp' library (ensure it’s in the requirements)
 
-  # Start the Deluge daemon
-  - echo "Starting Deluge daemon"
-  - start /B deluged  # Start the Deluge daemon in the background
-  - timeout /t 10  # Wait for it to start (timeout command for Windows)
+before_build:
+  # Optional: Any pre-build setup (not necessarily needed for basic use)
+  - source venv/bin/activate  # Ensure the virtual environment is activated
 
-  # Set seeding time to 0
-  - echo "Setting seeding_time to 0 to disable seeding"
-  - deluge-console config -s seeding_time 0
+# Corrected build section
+build:
+  commands:
+    - source venv/bin/activate  # Ensure the virtual environment is activated
 
-  # Adding a torrent using a magnet link
-  - echo "Adding torrent via magnet link"
-  - deluge-console add "magnet:?xt=urn:btih:34F2A1FA5CD593C394C6E5B5B83B92A7165EA9A9&dn=Learn+Python+In+A+Week+And+Master+It&tr=udp%3A%2F%2Fopen.tracker.cl%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2F9.rarbg.com%3A2810%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A6969%2Fannounce"
+# Optional: Running tests (if you have them defined)
+test:
+  commands:
+    - source venv/bin/activate  # Ensure virtualenv is active
+    - pytest tests/  # Example: Running tests using pytest
 
-  # Adding .torrent files if available
-  - echo "Checking for .torrent files to add..."
-  - |
-    for %%f in (torrents\*.torrent) do (
-      echo "Adding torrent: %%f"
-      deluge-console add "%%f"
-    )
-
-  # Stop the Deluge daemon
-  - echo "Stopping Deluge daemon"
-  - deluge-console quit
+# Optional: Upload artifacts if needed (such as logs or output)
+artifacts:
+  - path: build_output/
+    name: Build Artifacts
