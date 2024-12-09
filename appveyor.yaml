@@ -4,13 +4,12 @@ version: 1.0.{build}
 # Using macOS for the environment
 image: macos-sonoma
 
-# Install necessary packages
-install:
+# Use "Script" mode since we're not using Visual Studio
+build_script:
   - brew update  # Update Homebrew
   - brew install deluge  # Install Deluge via Homebrew
 
-# Build and deploy steps
-build_script:
+  # Start the Deluge daemon
   - echo "Starting Deluge daemon"
   - deluged & # Start the Deluge daemon in the background
   - sleep 10  # Wait for it to start
