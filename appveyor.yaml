@@ -1,24 +1,19 @@
-# AppVeyor configuration file
 version: 1.0.{build}
-
-# Specify the environment
-platform:
-  - x64
 
 # Using Windows with Visual Studio 2019
 image: Visual Studio 2019
 
-# Use "Script" mode since we're not using macOS specific tools
+# Set the build mode to "Script" instead of "MSBuild"
 build_script:
   - echo "Preparing environment..."
-  
-  # Install Deluge via Chocolatey (since we're now using Windows)
+
+  # Install Deluge via Chocolatey
   - choco install deluge -y  # Install Deluge via Chocolatey
 
   # Start the Deluge daemon
   - echo "Starting Deluge daemon"
-  - deluged &  # Start the Deluge daemon in the background
-  - timeout 10  # Wait for it to start
+  - start /B deluged  # Start the Deluge daemon in the background
+  - timeout /t 10  # Wait for it to start (timeout command for Windows)
 
   # Set seeding time to 0
   - echo "Setting seeding_time to 0 to disable seeding"
