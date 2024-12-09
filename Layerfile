@@ -3,7 +3,7 @@ FROM vm/ubuntu:18.04
 
 # Update package list and install Deluge, Python, and necessary Python packages
 RUN apt-get update && \
-    apt-get install -y deluge deluge-console python3 python3-pip && \
+    apt-get install -y deluged deluge-console python3 python3-pip && \
     apt-get clean
 
 # Install necessary Python packages if needed (optional in this case)
