@@ -1,6 +1,4 @@
 version: 1.0.{build}
-
-# Using Windows with Visual Studio 2019
 image: Visual Studio 2019
 
 # Set the build mode to "Script" instead of "MSBuild"
