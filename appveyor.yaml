@@ -1,10 +1,6 @@
 # AppVeyor configuration file
 version: 1.0.{build}
 
-# Specify the environment (Windows, Linux, or Mac)
-platform:
-  - x64
-
 # Using Ubuntu since Deluge is being installed
 image: Ubuntu
 
