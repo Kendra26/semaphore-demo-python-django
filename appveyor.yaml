@@ -1,0 +1,40 @@
+# AppVeyor configuration file
+version: 1.0.{build}
+
+# Specify the environment (Windows, Linux, or Mac)
+platform:
+  - x64
+
+# Using Ubuntu since Deluge is being installed
+image: Ubuntu
+
+# Install necessary packages
+install:
+  - sudo apt update
+  - sudo apt install -y deluged deluge-web deluge-console
+
+# Build and deploy steps
+build_script:
+  - echo "Starting Deluge daemon"
+  - deluged & # Start the Deluge daemon in the background
+  - sleep 10  # Wait for it to start
+
+  # Set seeding time to 0
+  - echo "Setting seeding_time to 0 to disable seeding"
+  - deluge-console config -s seeding_time 0
+
+  # Adding a torrent using a magnet link
+  - echo "Adding torrent via magnet link"
+  - deluge-console add "magnet:?xt=urn:btih:34F2A1FA5CD593C394C6E5B5B83B92A7165EA9A9&dn=Learn+Python+In+A+Week+And+Master+It&tr=udp%3A%2F%2Fopen.tracker.cl%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2F9.rarbg.com%3A2810%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A6969%2Fannounce"
+
+  # Adding .torrent files if available
+  - for torrent in torrents/*.torrent; do
+      if [ -f "$torrent" ]; then
+        echo "Adding torrent: $torrent"
+        deluge-console add "$torrent"
+      fi
+    done
+
+  # Stop the Deluge daemon
+  - echo "Stopping Deluge daemon"
+  - deluge-console quit
