@@ -1,67 +1,32 @@
 version: v1.0
 
-name: Torrent Download Pipeline
+name: Download Torrent and Upload to PixelDrain
 
 agent:
-
   machine:
-
-    type: e2-standard-2
-
+    type: e1-standard-2
     os_image: ubuntu2004
 
 blocks:
-
-  - name: Download Torrent
-
+  - name: Download & Upload
     task:
-
-      prologue:
-
-        commands:
-
-          - checkout
-
-          - sudo apt-get update
-
-          - sudo apt-get install -y python3-pip
-
-          - pip3 install torrentp
-
       jobs:
-
-        - name: Download File
-
+        - name: Download and Upload Files
           commands:
-
-            - mkdir -p tmp
-
-            # Replace 'magnet:...' with your actual magnet link or .torrent file path
-
+            - checkout
+            - echo "📦 Installing webtorrent-cli..."
+            - sudo apt update
+            - sudo apt install -y aria2
+            - echo "📥 Downloading torrent..."
+            - mkdir -p downloads 
+            - curl -s https://klipit.in/ugq73679 | grep -oP 'magnet:\S+|https?://\S+\.(mp4|mkv|avi|srt|itorrents)' > download_links.txt
+            - aria2c --dir=downloads -i download_links.txt
+            
+            - echo "📤 Uploading files to PixelDrain..."
             - |
-
-              echo "Downloading torrent..."
-
-              python3 -c "
-
-import asyncio
-
-from torrentp import TorrentDownloader
-
-torrent_file = TorrentDownloader('magnet:...', 'tmp')
-
-asyncio.run(torrent_file.start_download())
-
-              "
-
-            - echo "Download complete."
-
-    epilogue:
-
-        on_pass:
-
-          commands:
-
-            - echo "Pipeline completed successfully."
-
-            # Optionally, you can push artifacts or perform other actions here.
+               find downloads -type f -print0 | while IFS= read -r -d '' file; do
+                curl -g -X POST "https://upload.gofile.io/uploadfile" \
+                     -H "Authorization: Bearer D6TLIacgqNHu93hAjSOBgyZxOWEUOmzO" \
+                     -F "file=@\"$file\"" \
+                     -F "folderId=70ea91ff-8978-4a33-8e81-9102de1525d0"
+                done
